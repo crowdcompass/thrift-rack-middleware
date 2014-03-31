@@ -10,8 +10,9 @@ module Thrift
           @env = env
         end
 
-        def or(logger)
+        def or(logger, format)
           @logger = logger if logger
+          @format = format || {}
           self
         end
 
@@ -29,9 +30,17 @@ module Thrift
           self
         end
 
+        def called_formatter
+          @format[:called] || "Called %s#%s"
+        end
+
+        def completed_formatters
+          @format[:completed] || "Completed %s#%s in %s"
+        end
+
         def processing_time(hook_path, rpc_method, &block)
           time = Benchmark.realtime &block
-          @logger.info "Completed #{hook_path}##{rpc_method} in #{time_to_readable(time)}"
+          @logger.info completed_formatters % [hook_path, rpc_method, time_to_readable(time)]
         end
 
         def error(error, request)
@@ -46,7 +55,7 @@ module Thrift
         end
 
         def method_name(hook_path, rpc_method)
-          @logger.info "Called #{hook_path}##{rpc_method}"
+          @logger.info called_formatter % [hook_path, rpc_method]
         end
 
         private

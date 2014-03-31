@@ -54,6 +54,7 @@ module Thrift
       @protocol_factory = options[:protocol_factory] || BinaryProtocolFactory.new
       @hook_path        = options[:hook_path] || "/rpc_api"
       @logger           = options[:logger]
+      @format           = options[:format]
     end
 
     def call(env)
@@ -67,7 +68,7 @@ module Thrift
     end
 
     def process(request)
-      log = Thrift::Rack::Middleware::Logger.new(request.env).or(@logger).create!
+      log = Thrift::Rack::Middleware::Logger.new(request.env).or(@logger, @format).create!
 
       rpc_method = parse_rpc_method(request)
       log.method_name(@hook_path, rpc_method)
